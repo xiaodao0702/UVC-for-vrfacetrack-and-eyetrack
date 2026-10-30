@@ -2,12 +2,6 @@
 
 用 Android 手机当 USB Host，把 UVC 摄像头的 **原始 MJPEG** 低延迟推到局域网。
 
-桌面显示名：**UVC 立传** · 工程名：**EasyUVCStreamer**
-
-<p align="center">
-  <img src="images/1.jpg" width="280" alt="采集与本机预览" />
-  <img src="images/2.jpg" width="280" alt="推流地址与端口" />
-</p>
 
 ## 能做什么
 
