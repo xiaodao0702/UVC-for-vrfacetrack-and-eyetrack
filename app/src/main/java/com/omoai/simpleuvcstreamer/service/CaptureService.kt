@@ -13,8 +13,8 @@ import android.os.IBinder
 import android.os.Looper
 import androidx.core.content.ContextCompat
 import com.omoai.simpleuvcstreamer.R
-import com.omoai.simpleuvcstreamer.cymple.CympleBridge
-import com.omoai.simpleuvcstreamer.cymple.CymplePrefs
+import com.omoai.simpleuvcstreamer.facetrack.FaceTrackBridge
+import com.omoai.simpleuvcstreamer.facetrack.FaceTrackPrefs
 import com.omoai.simpleuvcstreamer.stream.HttpStreamController
 import com.omoai.simpleuvcstreamer.usb.UsbDeviceMonitor
 import com.omoai.simpleuvcstreamer.usb.UvcDeviceFinder
@@ -97,8 +97,8 @@ class CaptureService : Service(), UsbDeviceMonitor.Listener {
         private set
     private lateinit var usbMonitor: UsbDeviceMonitor
 
-    /** Cymple 直连（DIY 摄像头 UDP 协议）发送器。 */
-    lateinit var cymple: CympleBridge
+    /** 面捕眼追软件直连（DIY 摄像头 UDP 协议）发送器。 */
+    lateinit var faceTrack: FaceTrackBridge
         private set
 
     private val slots: Array<Slot> = Array(UvcNative.CAMERA_COUNT) { Slot(it) }
@@ -142,7 +142,7 @@ class CaptureService : Service(), UsbDeviceMonitor.Listener {
             slot.http = HttpStreamController(this, slot.index)
             slot.statusText = getString(R.string.status_ready)
         }
-        cymple = CympleBridge(this) { handler.post { notifyUi() } }
+        faceTrack = FaceTrackBridge(this) { handler.post { notifyUi() } }
 
         if (!UvcNative.isLibLoaded) {
             slots.forEach { it.statusText = getString(R.string.status_lib_missing) }
@@ -168,8 +168,8 @@ class CaptureService : Service(), UsbDeviceMonitor.Listener {
         usbMonitor = UsbDeviceMonitor(this, ACTION_USB_PERMISSION, this)
         usbMonitor.register()
 
-        if (CymplePrefs.isEnabled(this)) {
-            cymple.setEnabled(true)
+        if (FaceTrackPrefs.isEnabled(this)) {
+            faceTrack.setEnabled(true)
         }
 
         if (AutoStartPrefs.isEnabled(this) || anySlotWantsStreaming()) {
@@ -246,8 +246,8 @@ class CaptureService : Service(), UsbDeviceMonitor.Listener {
                 runCatching { slot.http.stop() }
             }
         }
-        if (::cymple.isInitialized) {
-            cymple.setEnabled(false)
+        if (::faceTrack.isInitialized) {
+            faceTrack.setEnabled(false)
         }
         super.onDestroy()
     }
@@ -361,7 +361,7 @@ class CaptureService : Service(), UsbDeviceMonitor.Listener {
         }
         slot.session.stopStream()
         slot.statusText = getString(R.string.status_idle)
-        syncCympleSlot(slot)
+        syncFaceTrackSlot(slot)
         notifyUi()
     }
 
@@ -375,44 +375,44 @@ class CaptureService : Service(), UsbDeviceMonitor.Listener {
         ensureHttpRunning(slots[index])
     }
 
-    // ------------------------------------------------------------- Cymple 直连
+    // ------------------------------------------------------------- 面捕眼追软件直连
 
-    fun cympleState(): CympleBridge.State = cymple.snapshot()
+    fun faceTrackState(): FaceTrackBridge.State = faceTrack.snapshot()
 
-    fun setCympleEnabled(enabled: Boolean) {
-        if (!::cymple.isInitialized) return
-        CymplePrefs.setEnabled(this, enabled)
+    fun setFaceTrackEnabled(enabled: Boolean) {
+        if (!::faceTrack.isInitialized) return
+        FaceTrackPrefs.setEnabled(this, enabled)
         if (enabled && !UvcNative.isLibLoaded) {
-            FileLogger.log("Cymple: native lib missing — cannot send")
+            FileLogger.log("FaceTrack: native lib missing — cannot send")
             notifyUi()
             return
         }
-        cymple.setEnabled(enabled)
-        slots.forEach { syncCympleSlot(it) }
+        faceTrack.setEnabled(enabled)
+        slots.forEach { syncFaceTrackSlot(it) }
         notifyUi()
     }
 
-    fun setCympleFlag(index: Int, flag: Int) {
-        if (index !in slots.indices || !::cymple.isInitialized) return
-        CymplePrefs.setFlag(this, index, flag)
-        cymple.setFlag(index, flag)
-        syncCympleSlot(slots[index])
+    fun setFaceTrackFlag(index: Int, flag: Int) {
+        if (index !in slots.indices || !::faceTrack.isInitialized) return
+        FaceTrackPrefs.setFlag(this, index, flag)
+        faceTrack.setFlag(index, flag)
+        syncFaceTrackSlot(slots[index])
         notifyUi()
     }
 
-    /** Native Cymple frame slot + UDP sender follow the slot's streaming state. */
-    private fun syncCympleSlot(slot: Slot) {
-        if (!::cymple.isInitialized) return
+    /** Native face-track slot + UDP sender follow the slot's streaming state. */
+    private fun syncFaceTrackSlot(slot: Slot) {
+        if (!::faceTrack.isInitialized) return
         val shouldSend = slot.isStreaming &&
-            cymple.isEnabled() &&
-            CymplePrefs.flagFor(this, slot.index) >= 0
+            faceTrack.isEnabled() &&
+            FaceTrackPrefs.flagFor(this, slot.index) >= 0
         if (shouldSend) {
-            UvcNative.nativeSetCympleEnabled(slot.index, true)
-            cymple.startSlot(slot.index)
+            UvcNative.nativeSetFaceTrackEnabled(slot.index, true)
+            faceTrack.startSlot(slot.index)
         } else {
-            cymple.stopSlot(slot.index)
+            faceTrack.stopSlot(slot.index)
             if (UvcNative.isLibLoaded) {
-                UvcNative.nativeSetCympleEnabled(slot.index, false)
+                UvcNative.nativeSetFaceTrackEnabled(slot.index, false)
             }
         }
     }
@@ -454,7 +454,7 @@ class CaptureService : Service(), UsbDeviceMonitor.Listener {
                 slot.permissionWaitName = null
                 slot.suppressAutoOpenUntilMs = now + 2500L
                 slot.statusText = getString(R.string.status_device_detached)
-                syncCympleSlot(slot)
+                syncFaceTrackSlot(slot)
                 notifyUi()
             }
         }
@@ -815,7 +815,7 @@ class CaptureService : Service(), UsbDeviceMonitor.Listener {
             } else {
                 getString(R.string.status_streaming, attempt.width, attempt.height, attemptFps)
             }
-            syncCympleSlot(slot)
+            syncFaceTrackSlot(slot)
             notifyUi()
             return
         }
@@ -824,7 +824,7 @@ class CaptureService : Service(), UsbDeviceMonitor.Listener {
         slot.device?.let { DeviceHistory.clearMode(this, it) }
         CaptureKeepAlive.setWantStreaming(this, index, false)
         slot.statusText = getString(R.string.status_stream_error, lastRes, mode.width, mode.height, fps)
-        syncCympleSlot(slot)
+        syncFaceTrackSlot(slot)
         notifyUi()
     }
 

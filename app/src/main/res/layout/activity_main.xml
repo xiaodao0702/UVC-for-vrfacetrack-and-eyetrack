@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp" />
 
-        <!-- Cymple 直连（DIY 眼追/面捕摄像头协议） -->
+        <!-- 面捕眼追软件直连（DIY 眼追/面捕摄像头协议） -->
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.Uvc.Card"
             android:layout_width="match_parent"
@@ -62,36 +62,36 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/cymple_section"
+                    android:text="@string/facetrack_section"
                     android:textAppearance="@style/Text.Uvc.Section" />
 
                 <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/switchCymple"
+                    android:id="@+id/switchFaceTrack"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:checked="false"
-                    android:text="@string/cymple_switch"
+                    android:text="@string/facetrack_switch"
                     android:textAppearance="@style/Text.Uvc.Body" />
 
                 <TextView
-                    android:id="@+id/tvCympleStatus"
+                    android:id="@+id/tvFaceTrackStatus"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="@string/cymple_status_off"
+                    android:text="@string/facetrack_status_off"
                     android:textAppearance="@style/Text.Uvc.Label" />
 
                 <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/layoutCympleFlag1"
+                    android:id="@+id/layoutFaceTrackFlag1"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:hint="@string/cymple_position_hint_1">
+                    android:hint="@string/facetrack_position_hint_1">
 
                     <AutoCompleteTextView
-                        android:id="@+id/dropdownCympleFlag1"
+                        android:id="@+id/dropdownFaceTrackFlag1"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="none"
@@ -99,15 +99,15 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/layoutCympleFlag2"
+                    android:id="@+id/layoutFaceTrackFlag2"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:hint="@string/cymple_position_hint_2">
+                    android:hint="@string/facetrack_position_hint_2">
 
                     <AutoCompleteTextView
-                        android:id="@+id/dropdownCympleFlag2"
+                        android:id="@+id/dropdownFaceTrackFlag2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="none"
@@ -118,7 +118,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="@string/cymple_hint"
+                    android:text="@string/facetrack_hint"
                     android:textAppearance="@style/Text.Uvc.Label" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

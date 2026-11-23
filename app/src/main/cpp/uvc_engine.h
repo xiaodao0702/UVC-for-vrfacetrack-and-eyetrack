@@ -26,8 +26,8 @@ std::string get_resolutions(int cam);
 void set_preview_enabled(int cam, bool enabled);
 jbyteArray take_latest_frame(JNIEnv *env, int cam);
 
-/** Cymple 直连: dedicated drop-old JPEG slot per camera (see frame_pipeline). */
-void set_cymple_enabled(int cam, bool enabled);
-jbyteArray take_cymple_frame(JNIEnv *env, int cam);
+/** 面捕眼追软件直连: dedicated drop-old JPEG slot per camera (see frame_pipeline). */
+void set_facetrack_enabled(int cam, bool enabled);
+jbyteArray take_facetrack_frame(JNIEnv *env, int cam);
 
 }  // namespace uvc_engine

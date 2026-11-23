@@ -1,20 +1,20 @@
-package com.omoai.simpleuvcstreamer.cymple
+package com.omoai.simpleuvcstreamer.facetrack
 
 /**
- * Wire protocol of Cymple's "DIY camera" (Project_Cymple / esp源代码).
+ * Wire protocol of the face/eye-tracking software's DIY camera (reverse-engineered from its open ESP32 demo).
  *
- * Discovery / heartbeat: Cymple (PC) -> UDP 23302, TLV {u16 type, u16 len}
+ * Discovery / heartbeat: 面捕眼追软件（PC） -> UDP 23302, TLV {u16 type, u16 len}
  *   type 0 = broadcast heartbeat, 4 = unicast heartbeat.
- * Images: camera -> Cymple IP:23303, TLV type 5 (MSG_IMAGE_V2_E), 12-byte header
+ * Images: camera -> tracker IP:23303, TLV type 5 (MSG_IMAGE_V2_E), 12-byte header
  *   + JPEG chunk, chunk <= 1444 bytes (uiLength = 8 + chunk, excludes the TLV tag).
  * Device flag: 0 = left eye, 1 = right eye, 2 = mouth.
  */
-object CympleProtocol {
+object FaceTrackProtocol {
 
     const val CAM_PORT = 23302
     const val SERVER_PORT = 23303
 
-    /** Second local source port so Cymple can see two cameras as two endpoints. */
+    /** Second local source port so the tracker can see two cameras as two endpoints. */
     const val SECOND_LOCAL_PORT = 23304
 
     const val MSG_SERVER_HEARTBEAT = 0

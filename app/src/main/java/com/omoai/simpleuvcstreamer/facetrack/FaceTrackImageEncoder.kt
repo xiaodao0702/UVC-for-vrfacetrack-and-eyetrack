@@ -1,4 +1,4 @@
-package com.omoai.simpleuvcstreamer.cymple
+package com.omoai.simpleuvcstreamer.facetrack
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -10,13 +10,13 @@ import android.graphics.Rect
 import java.io.ByteArrayOutputStream
 
 /**
- * Converts a full-size camera JPEG into what Cymple's DIY camera sends:
+ * Converts a full-size camera JPEG into what the face-tracking software's DIY camera sends:
  * a 320x240 (4:3), grayscale JPEG that fits the u16 uiTotalLen field.
  *
  * Crop + scale + grayscale are done in one Canvas pass (keeps per-frame cost low
  * enough for two cameras at ~20 fps).
  */
-object CympleImageEncoder {
+object FaceTrackImageEncoder {
     private const val OUT_W = 320
     private const val OUT_H = 240
     private const val QUALITY = 55
@@ -24,7 +24,7 @@ object CympleImageEncoder {
     /** Decode at most this large before the scale/crop pass. */
     private const val MAX_DECODE_EDGE = 960
 
-    fun toCympleJpeg(src: ByteArray): ByteArray? {
+    fun toFaceTrackJpeg(src: ByteArray): ByteArray? {
         if (src.isEmpty()) return null
 
         val decoded = decode(src) ?: return null

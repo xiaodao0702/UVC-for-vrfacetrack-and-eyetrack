@@ -402,14 +402,14 @@ jbyteArray take_latest_frame(JNIEnv *env, int cam) {
     return frame_pipeline::take_latest_frame(env, cam);
 }
 
-void set_cymple_enabled(int cam, bool enabled) {
+void set_facetrack_enabled(int cam, bool enabled) {
     if (!valid_cam(cam)) return;
-    frame_pipeline::set_cymple_enabled(cam, enabled);
+    frame_pipeline::set_facetrack_enabled(cam, enabled);
 }
 
-jbyteArray take_cymple_frame(JNIEnv *env, int cam) {
+jbyteArray take_facetrack_frame(JNIEnv *env, int cam) {
     if (!valid_cam(cam)) return nullptr;
-    return frame_pipeline::take_cymple_frame(env, cam);
+    return frame_pipeline::take_facetrack_frame(env, cam);
 }
 
 }  // namespace uvc_engine

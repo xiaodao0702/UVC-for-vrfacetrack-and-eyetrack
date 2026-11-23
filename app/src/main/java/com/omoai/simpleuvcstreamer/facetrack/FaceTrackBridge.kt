@@ -1,4 +1,4 @@
-package com.omoai.simpleuvcstreamer.cymple
+package com.omoai.simpleuvcstreamer.facetrack
 
 import android.content.Context
 import android.os.SystemClock
@@ -13,17 +13,14 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicIntegerArray
 
 /**
- * Cymple 直连 ("DIY camera" emulation, reverse-engineered from Project_Cymple).
+ * 面捕眼追软件直连（"DIY camera" 摄像头模拟，依据其开源 ESP32 示例逆向）。
  *
- * - Cymple (PC) broadcasts UDP heartbeats to port 23302; the source address is
- *   remembered and images are pushed to <PC>:23303.
- * - Every camera slot has its own sender thread that takes the latest JPEG from
- *   the native Cymple slot, converts it to 320x240 grayscale and fragments it into
- *   MSG_IMAGE_V2_E datagrams.
- * - Sending stops automatically when heartbeats stop (5 s timeout), mirroring the
- *   ESP32 firmware so Cymple does not keep stale devices alive.
+ * - 面捕眼追软件（PC）向 UDP 23302 广播心跳；本端记录来源地址，并把图像推送到 <PC>:23303。
+ * - 每路摄像头一个发送线程：取原生帧槽里最新的 JPEG，转 320×240 灰度并按
+ *   MSG_IMAGE_V2_E 分片发送。
+ * - 心跳停止 5 秒后自动停发，与 ESP32 固件行为一致，避免追踪端保留过期设备。
  */
-class CympleBridge(
+class FaceTrackBridge(
     private val context: Context,
     private val onStateChanged: () -> Unit = {},
 ) {
@@ -63,7 +60,7 @@ class CympleBridge(
 
     init {
         for (i in 0 until slotCount) {
-            flags.set(i, CymplePrefs.flagFor(context, i))
+            flags.set(i, FaceTrackPrefs.flagFor(context, i))
         }
     }
 
@@ -74,12 +71,12 @@ class CympleBridge(
         enabled = value
         if (value) {
             startHeartbeat()
-            FileLogger.log("Cymple: enabled")
+            FileLogger.log("FaceTrack: enabled")
         } else {
             for (i in 0 until slotCount) {
                 stopSlot(i)
             }
-            FileLogger.log("Cymple: disabled")
+            FileLogger.log("FaceTrack: disabled")
         }
         fireStateChanged()
     }
@@ -87,15 +84,15 @@ class CympleBridge(
     fun setFlag(index: Int, flag: Int) {
         if (index !in 0 until slotCount) return
         flags.set(index, flag)
-        CymplePrefs.setFlag(context, index, flag)
-        FileLogger.log("Cymple: slot $index position=$flag")
+        FaceTrackPrefs.setFlag(context, index, flag)
+        FileLogger.log("FaceTrack: slot $index position=$flag")
         if (flag < 0) {
             stopSlot(index)
         }
     }
 
     fun flagFor(index: Int): Int {
-        return if (index in 0 until slotCount) flags.get(index) else CympleProtocol.FLAG_OFF
+        return if (index in 0 until slotCount) flags.get(index) else FaceTrackProtocol.FLAG_OFF
     }
 
     /** Called when a camera slot starts streaming. */
@@ -104,7 +101,7 @@ class CympleBridge(
         if (flags.get(index) < 0) return
         val sender = senders[index] ?: Sender(index).also { senders[index] = it }
         sender.start()
-        FileLogger.log("Cymple: slot $index sender started")
+        FileLogger.log("FaceTrack: slot $index sender started")
     }
 
     /** Called when a camera slot stops streaming (or the bridge turns off). */
@@ -125,7 +122,7 @@ class CympleBridge(
         }
         val outFlags = IntArray(slotCount) { flags.get(it) }
         val connected = enabled && serverIp != null &&
-            now - lastHeartbeatAt < CympleProtocol.HEARTBEAT_TIMEOUT_MS
+            now - lastHeartbeatAt < FaceTrackProtocol.HEARTBEAT_TIMEOUT_MS
         return State(enabled, connected, serverIp, if (enabled) fps else 0, outFlags)
     }
 
@@ -137,7 +134,7 @@ class CympleBridge(
 
     private fun startHeartbeat() {
         if (heartbeatThread?.isAlive == true) return
-        heartbeatThread = Thread({ heartbeatLoop() }, "CympleHeartbeat").apply {
+        heartbeatThread = Thread({ heartbeatLoop() }, "FaceTrackHeartbeat").apply {
             isDaemon = true
             start()
         }
@@ -146,11 +143,11 @@ class CympleBridge(
     private fun heartbeatLoop() {
         var socket: DatagramSocket? = null
         try {
-            socket = DatagramSocket(CympleProtocol.CAM_PORT)
+            socket = DatagramSocket(FaceTrackProtocol.CAM_PORT)
             socket.soTimeout = 500
             heartbeatSocket = socket
             val buf = ByteArray(1024)
-            FileLogger.log("Cymple: listening on UDP ${CympleProtocol.CAM_PORT}")
+            FileLogger.log("FaceTrack: listening on UDP ${FaceTrackProtocol.CAM_PORT}")
             while (enabled) {
                 try {
                     val packet = DatagramPacket(buf, buf.size)
@@ -164,7 +161,7 @@ class CympleBridge(
                 }
             }
         } catch (t: Throwable) {
-            FileLogger.log("Cymple: heartbeat listener stopped: ${t.message}")
+            FileLogger.log("FaceTrack: heartbeat listener stopped: ${t.message}")
         } finally {
             heartbeatSocket = null
             runCatching { socket?.close() }
@@ -182,8 +179,8 @@ class CympleBridge(
         val data = packet.data
         val offset = packet.offset
         val type = (data[offset].toInt() and 0xFF) or ((data[offset + 1].toInt() and 0xFF) shl 8)
-        if (type != CympleProtocol.MSG_SERVER_HEARTBEAT &&
-            type != CympleProtocol.MSG_SERVER_UNICAST_HEARTBEAT
+        if (type != FaceTrackProtocol.MSG_SERVER_HEARTBEAT &&
+            type != FaceTrackProtocol.MSG_SERVER_UNICAST_HEARTBEAT
         ) {
             return
         }
@@ -194,7 +191,7 @@ class CympleBridge(
         serverInet = address
         lastHeartbeatAt = SystemClock.elapsedRealtime()
         if (changed) {
-            FileLogger.log("Cymple: heartbeat from $ip")
+            FileLogger.log("FaceTrack: heartbeat from $ip")
             fireStateChanged()
         }
     }
@@ -212,7 +209,7 @@ class CympleBridge(
         fun start() {
             if (running) return
             running = true
-            thread = Thread({ loop() }, "CympleSender-$index").apply {
+            thread = Thread({ loop() }, "FaceTrackSender-$index").apply {
                 isDaemon = true
                 start()
             }
@@ -228,13 +225,13 @@ class CympleBridge(
 
         private fun socketForSend(): DatagramSocket? {
             // Slot 0 sends from the heartbeat socket (source port 23302), exactly
-            // like the ESP32 firmware; slot 1 uses its own port so Cymple sees a
+            // like the ESP32 firmware; slot 1 uses its own port so the tracker sees a
             // second endpoint if it keys devices by address:port.
             if (index == 0) {
                 heartbeatSocket?.let { if (!it.isClosed) return it }
             }
             ownSocket?.let { if (!it.isClosed) return it }
-            val port = if (index == 0) 0 else CympleProtocol.SECOND_LOCAL_PORT
+            val port = if (index == 0) 0 else FaceTrackProtocol.SECOND_LOCAL_PORT
             val socket = runCatching { DatagramSocket(port) }.getOrNull() ?: return null
             ownSocket = socket
             return socket
@@ -244,7 +241,7 @@ class CympleBridge(
             var lastSendAt = 0L
             while (running) {
                 try {
-                    val jpeg = UvcNative.nativeTakeCympleFrame(index)
+                    val jpeg = UvcNative.nativeTakeFaceTrackFrame(index)
                     if (jpeg == null || jpeg.isEmpty()) {
                         Thread.sleep(4)
                         continue
@@ -254,7 +251,7 @@ class CympleBridge(
                         continue
                     }
                     val target = serverInet
-                    if (target == null || now - lastHeartbeatAt >= CympleProtocol.HEARTBEAT_TIMEOUT_MS) {
+                    if (target == null || now - lastHeartbeatAt >= FaceTrackProtocol.HEARTBEAT_TIMEOUT_MS) {
                         Thread.sleep(40)
                         continue
                     }
@@ -263,8 +260,8 @@ class CympleBridge(
                         Thread.sleep(50)
                         continue
                     }
-                    val out = CympleImageEncoder.toCympleJpeg(jpeg)
-                    if (out == null || out.isEmpty() || out.size > CympleProtocol.MAX_JPEG_BYTES) {
+                    val out = FaceTrackImageEncoder.toFaceTrackJpeg(jpeg)
+                    if (out == null || out.isEmpty() || out.size > FaceTrackProtocol.MAX_JPEG_BYTES) {
                         continue
                     }
                     val socket = socketForSend() ?: continue
@@ -280,7 +277,7 @@ class CympleBridge(
                     ownSocket = null
                     Thread.sleep(150)
                 } catch (t: Throwable) {
-                    FileLogger.log("Cymple: send[$index] failed: ${t.message}")
+                    FileLogger.log("FaceTrack: send[$index] failed: ${t.message}")
                     Thread.sleep(100)
                 }
             }
@@ -294,8 +291,8 @@ class CympleBridge(
         ) {
             var offset = 0
             while (offset < jpeg.size && running) {
-                val len = minOf(CympleProtocol.MAX_CHUNK, jpeg.size - offset)
-                val packet = CympleProtocol.buildImagePacket(
+                val len = minOf(FaceTrackProtocol.MAX_CHUNK, jpeg.size - offset)
+                val packet = FaceTrackProtocol.buildImagePacket(
                     frameIndex = frameIndex,
                     flag = flag,
                     offset = offset,
@@ -305,7 +302,7 @@ class CympleBridge(
                     dataOffset = offset,
                 )
                 socket.send(
-                    DatagramPacket(packet, packet.size, target, CympleProtocol.SERVER_PORT)
+                    DatagramPacket(packet, packet.size, target, FaceTrackProtocol.SERVER_PORT)
                 )
                 offset += len
             }
@@ -313,7 +310,7 @@ class CympleBridge(
     }
 
     private companion object {
-        /** ~22 fps cap (Cymple's DIY camera runs ~24 fps). */
+        /** ~22 fps cap (the DIY camera runs ~24 fps). */
         const val MIN_SEND_INTERVAL_MS = 45L
     }
 }

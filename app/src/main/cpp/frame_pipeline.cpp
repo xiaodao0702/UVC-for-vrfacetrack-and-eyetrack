@@ -24,7 +24,7 @@ struct PreviewSlot {
     bool has = false;
 };
 
-struct CympleSlot {
+struct FaceTrackSlot {
     std::mutex mu;
     std::vector<uint8_t> jpeg;
     bool has = false;
@@ -32,11 +32,11 @@ struct CympleSlot {
 
 HttpSlot g_http[kCameras];
 PreviewSlot g_preview[kCameras];
-CympleSlot g_cymple[kCameras];
+FaceTrackSlot g_facetrack[kCameras];
 std::atomic<int> g_frame_count[kCameras];
 std::atomic<int> g_callback_seq[kCameras];
 std::atomic<bool> g_preview_enabled[kCameras];
-std::atomic<bool> g_cymple_enabled[kCameras];
+std::atomic<bool> g_facetrack_enabled[kCameras];
 std::atomic<int> g_http_subscribers[kCameras];
 
 // Reused JPEG scratch for the YUV encode path (per callback thread).
@@ -90,8 +90,8 @@ void replace_preview_slot(int cam, const uint8_t *data, size_t len) {
     slot.has = true;
 }
 
-void replace_cymple_slot(int cam, const uint8_t *data, size_t len) {
-    CympleSlot &slot = g_cymple[cam];
+void replace_facetrack_slot(int cam, const uint8_t *data, size_t len) {
+    FaceTrackSlot &slot = g_facetrack[cam];
     std::lock_guard<std::mutex> lock(slot.mu);
     slot.jpeg.assign(data, data + len);
     slot.has = true;
@@ -115,8 +115,8 @@ void on_frame(uvc_frame_t *frame, int cam) {
 
     const bool want_http = g_http_subscribers[cam].load(std::memory_order_relaxed) > 0;
     const bool want_preview = g_preview_enabled[cam].load(std::memory_order_relaxed);
-    const bool want_cymple = g_cymple_enabled[cam].load(std::memory_order_relaxed);
-    if (!want_http && !want_preview && !want_cymple) {
+    const bool want_facetrack = g_facetrack_enabled[cam].load(std::memory_order_relaxed);
+    if (!want_http && !want_preview && !want_facetrack) {
         return;
     }
     if (!encode_to_jpeg(frame, t_jpeg_scratch) || t_jpeg_scratch.empty()) {
@@ -129,8 +129,8 @@ void on_frame(uvc_frame_t *frame, int cam) {
     if (want_preview) {
         replace_preview_slot(cam, t_jpeg_scratch.data(), t_jpeg_scratch.size());
     }
-    if (want_cymple) {
-        replace_cymple_slot(cam, t_jpeg_scratch.data(), t_jpeg_scratch.size());
+    if (want_facetrack) {
+        replace_facetrack_slot(cam, t_jpeg_scratch.data(), t_jpeg_scratch.size());
     }
 }
 
@@ -149,20 +149,20 @@ bool preview_enabled(int cam) {
     return valid(cam) && g_preview_enabled[cam].load(std::memory_order_relaxed);
 }
 
-void set_cymple_enabled(int cam, bool enabled) {
+void set_facetrack_enabled(int cam, bool enabled) {
     if (!valid(cam)) return;
-    g_cymple_enabled[cam].store(enabled, std::memory_order_relaxed);
+    g_facetrack_enabled[cam].store(enabled, std::memory_order_relaxed);
     if (!enabled) {
-        CympleSlot &slot = g_cymple[cam];
+        FaceTrackSlot &slot = g_facetrack[cam];
         std::lock_guard<std::mutex> lock(slot.mu);
         slot.jpeg.clear();
         slot.has = false;
     }
 }
 
-jbyteArray take_cymple_frame(JNIEnv *env, int cam) {
+jbyteArray take_facetrack_frame(JNIEnv *env, int cam) {
     if (!valid(cam)) return nullptr;
-    CympleSlot &slot = g_cymple[cam];
+    FaceTrackSlot &slot = g_facetrack[cam];
     std::lock_guard<std::mutex> lock(slot.mu);
     if (!slot.has || slot.jpeg.empty()) {
         return nullptr;
@@ -244,7 +244,7 @@ void clear(int cam) {
         slot.has = false;
     }
     {
-        CympleSlot &slot = g_cymple[cam];
+        FaceTrackSlot &slot = g_facetrack[cam];
         std::lock_guard<std::mutex> lock(slot.mu);
         slot.jpeg.clear();
         slot.has = false;

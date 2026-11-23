@@ -32,7 +32,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import com.omoai.simpleuvcstreamer.cymple.CympleProtocol
+import com.omoai.simpleuvcstreamer.facetrack.FaceTrackProtocol
 import com.omoai.simpleuvcstreamer.preview.FramePreviewController
 import com.omoai.simpleuvcstreamer.service.BatteryKeepAlive
 import com.omoai.simpleuvcstreamer.service.CaptureKeepAlive
@@ -102,15 +102,15 @@ class MainActivity : AppCompatActivity(), CaptureService.Listener {
     private lateinit var switchAutoLaunch: MaterialSwitch
     private lateinit var switchBattery: MaterialSwitch
 
-    // Cymple 直连（眼追/面捕 DIY 摄像头协议）
-    private lateinit var switchCymple: MaterialSwitch
-    private lateinit var tvCympleStatus: TextView
-    private lateinit var dropdownCympleFlag1: AutoCompleteTextView
-    private lateinit var dropdownCympleFlag2: AutoCompleteTextView
-    private var suppressCympleFlagCallback = false
+    // 面捕眼追软件直连（眼追/面捕 DIY 摄像头协议）
+    private lateinit var switchFaceTrack: MaterialSwitch
+    private lateinit var tvFaceTrackStatus: TextView
+    private lateinit var dropdownFaceTrackFlag1: AutoCompleteTextView
+    private lateinit var dropdownFaceTrackFlag2: AutoCompleteTextView
+    private var suppressFaceTrackFlagCallback = false
 
     /** Last flag pushed into each position dropdown; avoids re-setting it every tick. */
-    private val cympleFlagShown =
+    private val faceTrackFlagShown =
         IntArray(UvcNative.CAMERA_COUNT) { Int.MIN_VALUE }
 
     private var capture: CaptureService? = null
@@ -163,7 +163,7 @@ class MainActivity : AppCompatActivity(), CaptureService.Listener {
                 slotUis.forEach { ui -> ui.tvFps.visibility = View.GONE }
             }
             refreshHttpUi(forceList = false)
-            renderCymple()
+            renderFaceTrack()
             fpsHandler.postDelayed(this, 1000)
         }
     }
@@ -243,7 +243,7 @@ class MainActivity : AppCompatActivity(), CaptureService.Listener {
             fpsHandler.post { syncBatterySwitch() }
         }
 
-        bindCympleUi()
+        bindFaceTrackUi()
 
         handleUsbAttachIntent(intent)
         fpsHandler.post(fpsRunnable)
@@ -367,78 +367,78 @@ class MainActivity : AppCompatActivity(), CaptureService.Listener {
         bindService(intent, connection, Context.BIND_AUTO_CREATE)
     }
 
-    // ------------------------------------------------------- Cymple 直连 UI
+    // ------------------------------------------------------- 面捕眼追软件直连 UI
 
-    private fun bindCympleUi() {
-        switchCymple = findViewById(R.id.switchCymple)
-        tvCympleStatus = findViewById(R.id.tvCympleStatus)
-        dropdownCympleFlag1 = findViewById(R.id.dropdownCympleFlag1)
-        dropdownCympleFlag2 = findViewById(R.id.dropdownCympleFlag2)
+    private fun bindFaceTrackUi() {
+        switchFaceTrack = findViewById(R.id.switchFaceTrack)
+        tvFaceTrackStatus = findViewById(R.id.tvFaceTrackStatus)
+        dropdownFaceTrackFlag1 = findViewById(R.id.dropdownFaceTrackFlag1)
+        dropdownFaceTrackFlag2 = findViewById(R.id.dropdownFaceTrackFlag2)
 
-        bindCymplePosition(0, dropdownCympleFlag1)
-        bindCymplePosition(1, dropdownCympleFlag2)
+        bindFaceTrackPosition(0, dropdownFaceTrackFlag1)
+        bindFaceTrackPosition(1, dropdownFaceTrackFlag2)
 
-        switchCymple.setOnCheckedChangeListener { _, checked ->
-            capture?.setCympleEnabled(checked)
-            renderCymple()
+        switchFaceTrack.setOnCheckedChangeListener { _, checked ->
+            capture?.setFaceTrackEnabled(checked)
+            renderFaceTrack()
         }
     }
 
-    private fun bindCymplePosition(index: Int, dropdown: AutoCompleteTextView) {
+    private fun bindFaceTrackPosition(index: Int, dropdown: AutoCompleteTextView) {
         dropdown.setAdapter(
-            ArrayAdapter(this, R.layout.item_spinner_dropdown, CympleProtocol.positionLabels)
+            ArrayAdapter(this, R.layout.item_spinner_dropdown, FaceTrackProtocol.positionLabels)
         )
         // Position can be picked at any time; it only stamps the UDP frames while
-        // Cymple 直连 is on, so the field stays interactive even when the switch
+        // 面捕眼追软件直连 is on, so the field stays interactive even when the switch
         // is off. Never re-configures the widget from the periodic render loop.
         dropdown.setOnClickListener {
             if (dropdown.isEnabled) dropdown.showDropDown()
         }
         dropdown.setOnItemClickListener { _, _, pos, _ ->
-            if (suppressCympleFlagCallback) return@setOnItemClickListener
-            val flag = CympleProtocol.positionValues.getOrElse(pos) { CympleProtocol.FLAG_OFF }
-            capture?.setCympleFlag(index, flag)
-            renderCymple()
+            if (suppressFaceTrackFlagCallback) return@setOnItemClickListener
+            val flag = FaceTrackProtocol.positionValues.getOrElse(pos) { FaceTrackProtocol.FLAG_OFF }
+            capture?.setFaceTrackFlag(index, flag)
+            renderFaceTrack()
         }
     }
 
-    private fun renderCymple() {
+    private fun renderFaceTrack() {
         val service = capture ?: return
-        if (!::switchCymple.isInitialized) return
-        val state = service.cympleState()
-        if (switchCymple.isChecked != state.enabled) {
-            switchCymple.setOnCheckedChangeListener(null)
-            switchCymple.isChecked = state.enabled
-            switchCymple.setOnCheckedChangeListener { _, checked ->
-                capture?.setCympleEnabled(checked)
-                renderCymple()
+        if (!::switchFaceTrack.isInitialized) return
+        val state = service.faceTrackState()
+        if (switchFaceTrack.isChecked != state.enabled) {
+            switchFaceTrack.setOnCheckedChangeListener(null)
+            switchFaceTrack.isChecked = state.enabled
+            switchFaceTrack.setOnCheckedChangeListener { _, checked ->
+                capture?.setFaceTrackEnabled(checked)
+                renderFaceTrack()
             }
         }
-        tvCympleStatus.text = when {
-            !state.enabled -> getString(R.string.cymple_status_off)
+        tvFaceTrackStatus.text = when {
+            !state.enabled -> getString(R.string.facetrack_status_off)
             state.connected -> getString(
-                R.string.cymple_status_connected,
+                R.string.facetrack_status_connected,
                 state.serverIp ?: "?",
                 state.fps,
             )
-            else -> getString(R.string.cymple_status_waiting)
+            else -> getString(R.string.facetrack_status_waiting)
         }
-        syncCympleFlagText(0, dropdownCympleFlag1, state.flags.getOrElse(0) { CympleProtocol.FLAG_OFF })
-        syncCympleFlagText(1, dropdownCympleFlag2, state.flags.getOrElse(1) { CympleProtocol.FLAG_OFF })
+        syncFaceTrackFlagText(0, dropdownFaceTrackFlag1, state.flags.getOrElse(0) { FaceTrackProtocol.FLAG_OFF })
+        syncFaceTrackFlagText(1, dropdownFaceTrackFlag2, state.flags.getOrElse(1) { FaceTrackProtocol.FLAG_OFF })
     }
 
     /**
      * Only touch the dropdown when the flag really changed — a periodic
      * re-setText/setEnabled here would dismiss an open dropdown list.
      */
-    private fun syncCympleFlagText(index: Int, dropdown: AutoCompleteTextView, flag: Int) {
-        if (cympleFlagShown[index] == flag) return
-        cympleFlagShown[index] = flag
-        suppressCympleFlagCallback = true
+    private fun syncFaceTrackFlagText(index: Int, dropdown: AutoCompleteTextView, flag: Int) {
+        if (faceTrackFlagShown[index] == flag) return
+        faceTrackFlagShown[index] = flag
+        suppressFaceTrackFlagCallback = true
         try {
-            dropdown.setText(CympleProtocol.labelFor(flag), false)
+            dropdown.setText(FaceTrackProtocol.labelFor(flag), false)
         } finally {
-            suppressCympleFlagCallback = false
+            suppressFaceTrackFlagCallback = false
         }
     }
 
@@ -578,7 +578,7 @@ class MainActivity : AppCompatActivity(), CaptureService.Listener {
 
     private fun renderCaptureState() {
         slotUis.forEach { renderSlot(it) }
-        renderCymple()
+        renderFaceTrack()
     }
 
     private fun renderSlot(ui: SlotUi) {

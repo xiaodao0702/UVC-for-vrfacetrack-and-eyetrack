@@ -86,18 +86,18 @@ Java_com_omoai_simpleuvcstreamer_uvc_UvcNative_nativeTakeLatestFrame(
 }
 
 JNIEXPORT void JNICALL
-Java_com_omoai_simpleuvcstreamer_uvc_UvcNative_nativeSetCympleEnabled(
+Java_com_omoai_simpleuvcstreamer_uvc_UvcNative_nativeSetFaceTrackEnabled(
         JNIEnv *env, jobject thiz, jint index, jboolean enabled) {
     (void) env;
     (void) thiz;
-    uvc_engine::set_cymple_enabled(index, enabled == JNI_TRUE);
+    uvc_engine::set_facetrack_enabled(index, enabled == JNI_TRUE);
 }
 
 JNIEXPORT jbyteArray JNICALL
-Java_com_omoai_simpleuvcstreamer_uvc_UvcNative_nativeTakeCympleFrame(
+Java_com_omoai_simpleuvcstreamer_uvc_UvcNative_nativeTakeFaceTrackFrame(
         JNIEnv *env, jobject thiz, jint index) {
     (void) thiz;
-    return uvc_engine::take_cymple_frame(env, index);
+    return uvc_engine::take_facetrack_frame(env, index);
 }
 
 JNIEXPORT jint JNICALL

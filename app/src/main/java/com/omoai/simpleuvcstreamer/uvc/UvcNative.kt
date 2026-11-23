@@ -35,9 +35,9 @@ object UvcNative {
     external fun nativeSetPreviewEnabled(index: Int, enabled: Boolean)
     external fun nativeTakeLatestFrame(index: Int): ByteArray?
 
-    /** Cymple 直连：每路一份最新 JPEG（drop-old），供 UDP 发送端取走。 */
-    external fun nativeSetCympleEnabled(index: Int, enabled: Boolean)
-    external fun nativeTakeCympleFrame(index: Int): ByteArray?
+    /** 面捕眼追软件直连：每路一份最新 JPEG（drop-old），供 UDP 发送端取走。 */
+    external fun nativeSetFaceTrackEnabled(index: Int, enabled: Boolean)
+    external fun nativeTakeFaceTrackFrame(index: Int): ByteArray?
 
     external fun nativeStartHttpServer(index: Int, port: Int): Int
     external fun nativeStopHttpServer(index: Int)

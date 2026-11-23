@@ -86,12 +86,12 @@
     <string name="notify_two_streams">两路摄像头采集中</string>
     <string name="notify_stop">停止</string>
 
-    <string name="cymple_section">Cymple 直连</string>
-    <string name="cymple_switch">把画面直接发给 Cymple（眼追/面捕）</string>
-    <string name="cymple_status_off">未开启</string>
-    <string name="cymple_status_waiting">等待 Cymple 心跳…（电脑端开启 CympleFace，手机与电脑同一 WiFi）</string>
-    <string name="cymple_status_connected">已连接 Cymple：%1$s · 发送 %2$d fps</string>
-    <string name="cymple_position_hint_1">摄像头 1 位置</string>
-    <string name="cymple_position_hint_2">摄像头 2 位置</string>
-    <string name="cymple_hint">画面会缩放到 320×240 灰度，按 Cymple DIY 摄像头协议用 UDP 发送；两路时若 Cymple 只认一台设备，可改一台机一路或换端口方案。</string>
+    <string name="facetrack_section">面捕眼追软件直连</string>
+    <string name="facetrack_switch">把画面直接发给面捕眼追软件（眼追/面捕）</string>
+    <string name="facetrack_status_off">未开启</string>
+    <string name="facetrack_status_waiting">等待面捕眼追软件心跳…（电脑端开启对应的追踪功能，手机与电脑同一 WiFi）</string>
+    <string name="facetrack_status_connected">已连接面捕眼追软件：%1$s · 发送 %2$d fps</string>
+    <string name="facetrack_position_hint_1">摄像头 1 位置</string>
+    <string name="facetrack_position_hint_2">摄像头 2 位置</string>
+    <string name="facetrack_hint">画面会缩放到 320×240 灰度，按面捕眼追软件的 DIY 摄像头协议用 UDP 发送；两路时若只识别到一台设备，可改一台机一路或换端口方案。</string>
 </resources>

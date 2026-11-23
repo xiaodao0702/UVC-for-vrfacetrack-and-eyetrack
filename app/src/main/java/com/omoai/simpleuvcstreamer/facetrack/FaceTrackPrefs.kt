@@ -1,10 +1,10 @@
-package com.omoai.simpleuvcstreamer.cymple
+package com.omoai.simpleuvcstreamer.facetrack
 
 import android.content.Context
 
-/** Persisted Cymple bridge settings (enabled + per-camera position). */
-object CymplePrefs {
-    private const val PREFS = "cymple_bridge"
+/** Persisted face/eye-tracking bridge settings (enabled + per-camera position). */
+object FaceTrackPrefs {
+    private const val PREFS = "facetrack_bridge"
     private const val KEY_ENABLED = "enabled"
     private const val KEY_FLAG = "flag_"
 
@@ -26,9 +26,9 @@ object CymplePrefs {
 
     /** Default: camera 1 = left eye, camera 2 = right eye. */
     private fun defaultFlag(index: Int): Int = when (index) {
-        0 -> CympleProtocol.FLAG_LEFT_EYE
-        1 -> CympleProtocol.FLAG_RIGHT_EYE
-        else -> CympleProtocol.FLAG_OFF
+        0 -> FaceTrackProtocol.FLAG_LEFT_EYE
+        1 -> FaceTrackProtocol.FLAG_RIGHT_EYE
+        else -> FaceTrackProtocol.FLAG_OFF
     }
 
     private fun prefs(context: Context) =

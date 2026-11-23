@@ -33,12 +33,12 @@ bool preview_enabled(int cam);
 jbyteArray take_latest_frame(JNIEnv *env, int cam);
 
 /**
- * Cymple 直连 (DIY camera protocol) needs its own latest-JPEG slot per camera:
+ * 面捕眼追软件直连 (DIY camera protocol) needs its own latest-JPEG slot per camera:
  * the sender polls/takes frames without stealing them from the on-device preview.
  * Drop-old semantics, same as the preview slot.
  */
-void set_cymple_enabled(int cam, bool enabled);
-jbyteArray take_cymple_frame(JNIEnv *env, int cam);
+void set_facetrack_enabled(int cam, bool enabled);
+jbyteArray take_facetrack_frame(JNIEnv *env, int cam);
 
 void http_subscriber_add(int cam);
 void http_subscriber_remove(int cam);

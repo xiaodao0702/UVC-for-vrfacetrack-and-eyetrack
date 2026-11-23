@@ -14,7 +14,7 @@
 - 枚举 / 打开 USB UVC 设备，协商 MJPEG 分辨率并开流
 - **同时采集两路摄像头**（每路一个独立的 USB 句柄、分辨率/帧率、状态机）
 - **每路一个独立 HTTP MJPEG 端口**（`multipart/x-mixed-replace`），两路互不影响，可分别被多台设备访问
-- **Cymple 直连**：按 Cymple 的 DIY 摄像头协议（UDP 23302 / 23303，320×240 灰度 JPEG 分片）把画面直接发给电脑端 Cymple 软件，做眼追 / 面捕
+- **面捕眼追软件直连**：按 面捕眼追软件的 DIY 摄像头协议（UDP 23302 / 23303，320×240 灰度 JPEG 分片）把画面直接发给电脑端面捕眼追软件，做眼追 / 面捕
 - 启动后自动开 HTTP 服务；每路端口可单独修改；按网卡列出可访问地址（点按复制）
 - 本机预览默认关闭（避免解码费电）；两路都可单独打开
 - 可选：插入摄像头时由系统唤起 App 并尝试开流
@@ -75,18 +75,18 @@ ABI：`arm64-v8a`、`x86_64`。
 
 注意：同一台摄像头不能被两路同时占用；在另一路的下拉框里选中正在使用的设备会提示「该摄像头已被另一路使用」。
 
-### Cymple 直连（眼追 / 面捕）
+### 面捕眼追软件直连（眼追 / 面捕）
 
-把手机画面当作 Cymple 的 “DIY 摄像头” 直接发送给电脑端 Cymple 软件，不需要虚拟摄像头驱动：
+把手机画面当作面捕眼追软件的 “DIY 摄像头” 直接发送给电脑端面捕眼追软件，不需要虚拟摄像头驱动：
 
-1. 电脑端打开 Cymple，Start 页开启 **CympleFace**；
+1. 电脑端打开面捕眼追软件，开启对应的追踪功能；
 2. 手机与电脑连同一个 Wi-Fi；
-3. App 里打开「Cymple 直连」开关，状态显示「已连接 Cymple：&lt;IP&gt; · N fps」即成功；
+3. App 里打开「面捕眼追软件直连」开关，状态显示「已连接面捕眼追软件：&lt;IP&gt; · N fps」即成功；
 4. 在「位置」下拉里给两路摄像头指定 左眼 / 右眼 / 嘴部 / 不发送。
 
-协议要点（实现见 `app/src/main/java/com/omoai/simpleuvcstreamer/cymple/`）：
+协议要点（实现见 `app/src/main/java/com/omoai/simpleuvcstreamer/facetrack/`）：
 
-- Cymple（PC）向 UDP **23302** 广播心跳（TLV `type=0/4`），本端记录来源 IP；
+- 面捕眼追软件（PC）向 UDP **23302** 广播心跳（TLV `type=0/4`），本端记录来源 IP；
 - 本端把每路画面缩放到 **320×240 灰度** JPEG，按 TLV `type=5`（`MSG_IMAGE_V2_E`）分片（每片 ≤1444 字节，含 offset/total/len/位置旗标/frameIndex）发往 **PC:23303**；
 - 5 秒收不到心跳自动停发；位置旗标：0=左眼、1=右眼、2=嘴部。
 
@@ -95,7 +95,7 @@ ABI：`arm64-v8a`、`x86_64`。
 ```
 app/src/main/
   java/.../          # UI、USB、会话、HTTP 控制器
-  java/.../cymple/   # Cymple DIY 摄像头协议直连
+  java/.../facetrack/   # 面捕眼追软件 DIY 摄像头协议直连
   cpp/               # JNI、libuvc 采集、帧管线、libhv MJPEG 服务
   cpp/overlay-ports/ # libuvc Android 补丁（iso transfer 等）
 images/              # 截图
