@@ -1,0 +1,121 @@
+package com.omoai.simpleuvcstreamer.uvc
+
+/**
+ * One streamable resolution and the frame rates advertised for it.
+ *
+ * Wire format from native:
+ * `WxH|fps1,fps2|defaultFps|isDeviceDefault|format;...`
+ * format = mjpeg | yuyv | uyvy. Native omits YUV when any MJPEG exists.
+ */
+data class StreamMode(
+    val width: Int,
+    val height: Int,
+    val fpsList: List<Int>,
+    val defaultFps: Int,
+    val isDeviceDefault: Boolean,
+    val format: PixelFormat = PixelFormat.MJPEG,
+) {
+    enum class PixelFormat(val wire: String, val isYuv: Boolean) {
+        MJPEG("mjpeg", false),
+        YUYV("yuyv", true),
+        UYVY("uyvy", true);
+
+        companion object {
+            fun fromWire(raw: String?): PixelFormat {
+                return when (raw?.lowercase()) {
+                    "yuyv" -> YUYV
+                    "uyvy" -> UYVY
+                    else -> MJPEG
+                }
+            }
+        }
+    }
+
+    /** Resolution label; appends " · YUV" only for uncompressed modes. */
+    val sizeLabel: String
+        get() = if (format.isYuv) "${width}x${height} · YUV" else "${width}x${height}"
+
+    fun fpsLabels(): List<String> = fpsList.map { "$it fps" }
+
+    fun nearestFps(prefer: Int): Int {
+        if (fpsList.isEmpty()) return prefer
+        return fpsList.minBy { kotlin.math.abs(it - prefer) }
+    }
+
+    companion object {
+        fun parse(raw: String): List<StreamMode> {
+            if (raw.isBlank()) return emptyList()
+            return raw.split(';')
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .mapNotNull { parseOne(it) }
+                .sortedWith(
+                    compareByDescending<StreamMode> { it.width * it.height }
+                        .thenByDescending { it.width }
+                )
+        }
+
+        private fun parseOne(line: String): StreamMode? {
+            val parts = line.split('|')
+            if (parts.size < 4) return null
+            val size = parts[0].split('x')
+            if (size.size != 2) return null
+            val w = size[0].toIntOrNull() ?: return null
+            val h = size[1].toIntOrNull() ?: return null
+            val fpsList = parts[1].split(',')
+                .mapNotNull { it.trim().toIntOrNull() }
+                .filter { it > 0 }
+                .distinct()
+                .sortedDescending()
+            if (fpsList.isEmpty()) return null
+            val defaultFps = parts[2].toIntOrNull()?.takeIf { it > 0 }
+                ?: fpsList.first()
+            val isDefault = parts[3].trim() == "1"
+            val format = PixelFormat.fromWire(parts.getOrNull(4)?.trim())
+            return StreamMode(
+                width = w,
+                height = h,
+                fpsList = fpsList,
+                defaultFps = if (fpsList.contains(defaultFps)) defaultFps else fpsList.first(),
+                isDeviceDefault = isDefault,
+                format = format,
+            )
+        }
+
+        /** Frame rate we aim for when picking a default mode. */
+        const val DEFAULT_STREAM_FPS = 30
+
+        /**
+         * Best default mode for *streaming*, which is not always the camera's own
+         * default frame: several UVC cameras advertise a tiny-but-fast default
+         * (e.g. 320x240@120), and streaming that floods the USB bus and the
+         * PC-side JPEG decoder for no visual benefit. Prefer a sane resolution
+         * and fall back to the device default only when none of them exist.
+         */
+        fun preferredIndex(modes: List<StreamMode>): Int {
+            if (modes.isEmpty()) return -1
+            val preferred = listOf(
+                "1280x720", "960x540", "800x600", "640x480", "640x360", "320x240"
+            )
+            for (p in preferred) {
+                val idx = modes.indexOfFirst { "${it.width}x${it.height}" == p }
+                if (idx >= 0) return idx
+            }
+            val deviceIdx = modes.indexOfFirst { it.isDeviceDefault }
+            return if (deviceIdx >= 0) deviceIdx else modes.lastIndex.coerceAtLeast(0)
+        }
+
+        fun deviceDefault(modes: List<StreamMode>): StreamMode? {
+            if (modes.isEmpty()) return null
+            return modes[preferredIndex(modes)]
+        }
+
+        fun indexOfSize(modes: List<StreamMode>, width: Int, height: Int): Int {
+            return modes.indexOfFirst { it.width == width && it.height == height }
+        }
+
+        fun parseFpsLabel(label: String): Int? {
+            return label.trim().removeSuffix("fps").trim().toIntOrNull()
+        }
+    }
+}

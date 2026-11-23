@@ -1,0 +1,8 @@
+{
+  "dependencies": [
+    "libuvc",
+    "libusb",
+    "libhv",
+    "libjpeg-turbo"
+  ]
+}

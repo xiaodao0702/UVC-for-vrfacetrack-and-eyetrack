@@ -1,0 +1,97 @@
+<resources>
+    <string name="app_name">UVC 立传</string>
+    <string name="brand_title">UVC 立传</string>
+    <string name="brand_subtitle">EasyUVCStreamer · USB 摄像头直推</string>
+
+    <string name="preview_content_description">摄像头预览画面</string>
+
+    <string name="section_capture">采集</string>
+    <string name="section_http">推流</string>
+    <string name="section_general">通用设置</string>
+    <string name="camera_title">摄像头 %1$d</string>
+    <string name="stream_block_title">摄像头 %1$d · 推流地址</string>
+
+    <string name="label_device">摄像头</string>
+    <string name="label_resolution">分辨率</string>
+    <string name="label_fps">帧率</string>
+    <string name="switch_stream">开始采集</string>
+    <string name="switch_auto_start">打开应用后自动开始传画面</string>
+    <string name="switch_auto_launch">插入摄像头时自动打开应用</string>
+    <string name="switch_battery_keep_alive">锁屏后继续传画面</string>
+    <string name="switch_battery_keep_alive_hint">小米、vivo 建议再到系统设置里允许后台运行，并把本应用在最近任务里锁定</string>
+    <string name="switch_preview">在手机上看画面（比较耗电，默认关）</string>
+
+    <string name="http_port_hint">端口</string>
+    <string name="http_apply_port">应用</string>
+    <string name="http_urls_title">可访问地址</string>
+    <string name="http_cleartext_hint">画面只在同一 Wi‑Fi 里用 http 传送，没有加密。只有连着同一个路由器的设备能打开，请不要把链接发到公网。</string>
+    <string name="http_no_urls">暂无可用地址</string>
+    <string name="http_tap_to_copy">点按复制链接</string>
+    <string name="http_copied">已复制到剪贴板</string>
+    <string name="http_running">推流服务运行中 · 端口 %1$d · 客户端 %2$d</string>
+    <string name="http_stopped">推流服务未运行 · 端口 %1$d</string>
+
+    <string name="http_group_lan">局域网（推荐）</string>
+    <string name="http_group_other">其他内网（10.x 等）</string>
+    <string name="http_group_local">仅本机</string>
+    <string name="http_badge_recommend">推荐</string>
+    <string name="http_hint_lan">同 Wi‑Fi 设备可访问</string>
+    <string name="http_hint_other">可能是 USB / 蜂窝内网，同网设备未必能连</string>
+    <string name="http_hint_local">只有这台手机自己能打开</string>
+
+    <string name="status_lib_missing">原生库加载失败</string>
+    <string name="status_init_crash">原生初始化崩溃</string>
+    <string name="status_ready">系统就绪</string>
+    <string name="status_no_device">未检测到 UVC 设备</string>
+    <string name="status_no_uvc_but_usb">已连接 %1$d 个 USB 设备，但未识别为 UVC（请看 logcat UVCStreamer）</string>
+    <string name="status_uvc_listed">已发现 %1$s · 打开采集开关以授权并连接</string>
+    <string name="status_waiting_permission">等待 USB 授权…</string>
+    <string name="status_waiting_camera_permission">请先允许摄像头权限，再打开 USB 摄像头</string>
+    <string name="status_permission_denied">USB 授权被拒绝</string>
+    <string name="status_open_failed">打开设备失败</string>
+    <string name="status_no_stream_format">该设备没有可用的 MJPEG / YUV 格式</string>
+    <string name="status_resolutions_ready">已就绪 · %1$d 种分辨率</string>
+    <string name="status_device_detached">摄像头已断开 · 等待重新连接</string>
+    <string name="status_select_resolution">请先选择分辨率</string>
+    <string name="status_select_fps">请先选择帧率</string>
+    <string name="status_streaming">采集中 · %1$dx%2$d · %3$d fps</string>
+    <string name="status_streaming_yuv">采集中 · %1$dx%2$d · %3$d fps · YUV→MJPEG</string>
+    <string name="status_streaming_fallback">采集中（已回退）· %1$dx%2$d · %3$d fps</string>
+    <string name="status_streaming_fallback_yuv">采集中（已回退）· %1$dx%2$d · %3$d fps · YUV→MJPEG</string>
+    <string name="status_stream_error">采集失败 · %1$d（%2$dx%3$d · %4$d fps）</string>
+    <string name="status_idle">已停止采集</string>
+    <string name="status_device_in_use">该摄像头已被另一路使用</string>
+    <string name="status_no_free_camera">没有空闲摄像头（另一路已占用）</string>
+    <string name="status_bad_port">端口无效（1–65535）</string>
+    <string name="status_http_ok">HTTP 已监听 :%1$d</string>
+    <string name="status_http_fail">HTTP 启动失败 :%1$d</string>
+    <string name="status_fps">帧率 %1$3d</string>
+    <string name="status_fps_idle">帧率 —</string>
+    <string name="perm_dialog_title">开始前请允许几件事</string>
+    <string name="perm_dialog_intro">我们只用你插在手机上的摄像头，不会用手机自己的摄像头拍照。为了关掉屏幕后电脑还能看到画面，需要你点几下允许：</string>
+    <string name="perm_rationale_camera">相机：系统会把它当成「用相机」。点允许后，插上的摄像头才能正常工作。我们不会拍照、也不会打开手机摄像头。</string>
+    <string name="perm_rationale_mic">麦克风：这种摄像头常常自带麦克风。不给也能看画面，但手机可能会一直弹出提醒。</string>
+    <string name="perm_rationale_notification">通知：传画面时通知栏会留一条，提醒你正在工作。这样你切到别的应用或锁屏，电脑这边才不容易突然中断。点那条通知可以回来，也可以停止。</string>
+    <string name="perm_rationale_battery">省电设置：有的手机为了省电，会把后台应用直接关掉。请允许「不限制电池」，锁屏后才比较稳。小米、vivo 最好再在系统设置里允许后台运行。</string>
+    <string name="perm_dialog_allow">下一步</string>
+    <string name="perm_dialog_later">暂时跳过</string>
+    <string name="perm_dialog_settings">去系统设置</string>
+    <string name="perm_dialog_denied_title">有权限被关掉了</string>
+    <string name="perm_dialog_denied_body">你上次选了「不再询问」。现在不给一般也能用，但锁屏后画面可能会断。可以到系统设置里打开相机、麦克风、通知，并允许不限制电池。</string>
+
+    <string name="notify_channel_name">正在传画面</string>
+    <string name="notify_channel_desc">传画面时显示，避免锁屏后被系统关掉</string>
+    <string name="notify_waiting">正在开始…</string>
+    <string name="notify_waiting_reconnect">摄像头已拔出 · 等待重新插上</string>
+    <string name="notify_two_streams">两路摄像头采集中</string>
+    <string name="notify_stop">停止</string>
+
+    <string name="cymple_section">Cymple 直连</string>
+    <string name="cymple_switch">把画面直接发给 Cymple（眼追/面捕）</string>
+    <string name="cymple_status_off">未开启</string>
+    <string name="cymple_status_waiting">等待 Cymple 心跳…（电脑端开启 CympleFace，手机与电脑同一 WiFi）</string>
+    <string name="cymple_status_connected">已连接 Cymple：%1$s · 发送 %2$d fps</string>
+    <string name="cymple_position_hint_1">摄像头 1 位置</string>
+    <string name="cymple_position_hint_2">摄像头 2 位置</string>
+    <string name="cymple_hint">画面会缩放到 320×240 灰度，按 Cymple DIY 摄像头协议用 UDP 发送；两路时若 Cymple 只认一台设备，可改一台机一路或换端口方案。</string>
+</resources>
